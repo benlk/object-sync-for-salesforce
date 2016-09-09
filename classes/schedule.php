@@ -1,6 +1,6 @@
 <?php
 
-class Wordpress_Salesforce_Schedule extends WP_Background_Process {
+class Wordpress_Salesforce_Schedule extends WP_Job {
 
 	protected $wpdb;
     protected $version;
@@ -40,7 +40,7 @@ class Wordpress_Salesforce_Schedule extends WP_Background_Process {
         $this->schedulable_classes = $schedulable_classes;
 
         $this->add_filters();
-        add_action( $this->schedule_name, array( $this, 'call_handler' ) ); // run the handle method
+        //add_action( $this->schedule_name, array( $this, 'call_handler' ) ); // run the handle method
 
     }
 
@@ -136,30 +136,21 @@ class Wordpress_Salesforce_Schedule extends WP_Background_Process {
     }
 
 	/**
-	 * Task
-	 *
-	 * Override this method to perform any actions required on the
-	 * queue data. Return the modified data for further processing
-	 * in the next pass through. Or, return false to remove the
-	 * data from the queue.
-	 *
-	 * @param mixed $data Queue data to iterate over
-	 *
-	 * @return mixed
-	 */
-	protected function task( $data ) {
-		if ( isset( $data['class'] ) ) {
-			$class = new $data['class']( $this->wpdb, $this->version, $this->login_credentials, $this->text_domain, $this->wordpress, $this->salesforce, $this->mappings, $this->logging, $this->schedulable_classes );
-			$method = $data['method'];
-			$task = $class->$method( $data['object_type'], $data['object'], $data['mapping'], $data['sf_sync_trigger'] );
-		}
-		return false;
-	}
-
-	public function call_handler() {
-		// call the handle method in the cron so we can run the queue periodically
-		$handle = $this->handle();
-	}
+     * Handle
+     *
+     * Override this method to perform any actions required on each
+     * queue item. Return the modified item for further processing
+     * in the next pass through. Or, return false to remove the
+     * item from the queue.
+     *
+     * @param mixed $item Queue item to iterate over
+     *
+     * @return mixed
+     */
+    public function handle() {
+        error_log('foo');
+        error_log('name is ' . $this->name );
+    }
 
 	/**
 	 * Complete

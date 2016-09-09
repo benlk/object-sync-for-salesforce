@@ -339,10 +339,13 @@ class Salesforce_Push {
 					$schedule = $this->schedule;
 					// create new schedule based on the options for this current class
 					// this will use the existing schedule if it already exists; otherwise it'll create one
-					$schedule->use_schedule( $this->schedule_name );
+					//$schedule->use_schedule( $this->schedule_name );
 
-					$queue = $this->schedule->push_to_queue( $data );
-					$save = $this->schedule->save();
+					//$queue = $this->schedule->push_to_queue( $data );
+					//$save = $this->schedule->save();
+
+					//wp_queue( new Wordpress_Salesforce_Schedule( $this->schedule_name ), MINUTE_IN_SECONDS );
+
 				} else {
 					// this one is not async. do it immediately.
 					$push = $this->salesforce_push_sync_rest( $object_type, $object, $mapping, $sf_sync_trigger );
@@ -356,7 +359,7 @@ class Salesforce_Push {
 			require_once plugin_dir_path( __FILE__ ) . '../vendor/autoload.php';
 			require_once plugin_dir_path( __FILE__ ) . '../classes/schedule.php';
 		}
-		$schedule = new Wordpress_Salesforce_Schedule( $this->wpdb, $this->version, $this->login_credentials, $this->text_domain, $this->wordpress, $this->salesforce, $this->mappings, $this->schedule_name, $this->logging, $this->schedulable_classes );
+		$schedule = wp_queue(new Wordpress_Salesforce_Schedule( $this->wpdb, $this->version, $this->login_credentials, $this->text_domain, $this->wordpress, $this->salesforce, $this->mappings, $this->schedule_name, $this->logging, $this->schedulable_classes ), MINUTE_IN_SECONDS );
 		$this->schedule = $schedule;
 		return $schedule;
 	}

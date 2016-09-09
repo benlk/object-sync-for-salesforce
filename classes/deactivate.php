@@ -22,8 +22,12 @@ class Wordpress_Salesforce_Deactivate {
     public function wordpress_salesforce_drop_tables() {
         $field_map_table = $this->wpdb->prefix . 'salesforce_field_map';
         $object_map_table = $this->wpdb->prefix . 'salesforce_object_map';
+        $queue_table = $this->wpdb->prefix . 'queue';
+        $failed_jobs_table = $this->wpdb->prefix . 'failed_jobs';
         $this->wpdb->query( 'DROP TABLE IF EXISTS ' . $field_map_table );
         $this->wpdb->query( 'DROP TABLE IF EXISTS ' . $object_map_table );
+        $this->wpdb->query( 'DROP TABLE IF EXISTS ' . $queue_table );
+        $this->wpdb->query( 'DROP TABLE IF EXISTS ' . $failed_jobs_table );
         delete_option( 'salesforce_rest_api_db_version' );
     }
 

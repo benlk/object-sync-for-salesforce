@@ -25,6 +25,9 @@
         "A5hleyRich/wp-background-processing": "dev-jobs-database-table"
     },
     "autoload": {
-        "classmap": ["vendor/pippinsplugins/wp-logging/"]
+        "classmap": ["vendor/pippinsplugins/wp-logging/"],
+        "files": [
+            "vendor/a5hleyrich/wp-background-processing/wp-background-processing.php"
+        ]
     }
 }

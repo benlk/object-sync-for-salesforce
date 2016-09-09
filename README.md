@@ -30,6 +30,17 @@ For a more detailed description of each component class, see below.
   - http://php.net/soap
   - http://php.net/openssl
 
+## Installing
+
+First, install the plugin:
+
+1. Upload the `salesforce-rest-api` folder to the `/wp-content/plugins/` directory
+2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Configure the settings for the plugin.
+4. If you intend to use asynchronous processing for push or pull tasks, you need to use `WP-CLI` to run the setup commands for the background processing library.
+
+Follow the instructions at http://wp-cli.org/ to install `WP-CLI`. Once you've done this, `cd` into the WordPress root directory, and run this command: `wp queue create-tables`. Alternatively, if you can't or don't want to use `WP-CLI`, you can find the tables to create manually at `/vendor/a5hleyrich/wp-background-processing/classes/cli/queue-command.php`.
+
 ## Classes
 
 ### Salesforce REST API
