@@ -864,17 +864,17 @@ class Object_Sync_Sf_Admin {
 		$object_description = array();
 
 		if ( ! empty( $data['salesforce_object'] ) ) {
-			$object = $this->salesforce['sfapi']->object_describe( esc_attr( $data['salesforce_object'] ) );
+			$object = $this->salesforce['sfapi']->object_describe( sanitize_key( $data['salesforce_object'] ) );
 
 			$object_fields = array();
 			$include_record_types = array();
 
-			// these can come from ajax
+			// these can come from ajax, so we should esc_attr them
 			$include = isset( $data['include'] ) ? (array) $data['include'] : array();
 			$include = array_map( 'esc_attr', $include );
 
 			if ( in_array( 'fields', $include ) || empty( $include ) ) {
-				$type = isset( $data['field_type'] ) ? esc_attr( $data['field_type'] ) : ''; // can come from ajax
+				$type = isset( $data['field_type'] ) ? esc_attr( $data['field_type'] ) : ''; // can come from ajax, so esc_attr
 				foreach ( $object['data']['fields'] as $key => $value ) {
 					if ( '' === $type || $type === $value['type'] ) {
 						$object_fields[ $key ] = $value;
@@ -944,7 +944,7 @@ class Object_Sync_Sf_Admin {
 	public function get_wordpress_object_fields( $wordpress_object = '' ) {
 		$ajax = false;
 		if ( empty( $wordpress_object ) ) {
-			$wordpress_object = $_POST['wordpress_object'];
+			$wordpress_object = sanitize_key( $_POST['wordpress_object'] );
 			$ajax = true;
 		}
 
@@ -967,10 +967,10 @@ class Object_Sync_Sf_Admin {
 	*/
 	public function get_wp_sf_object_fields( $wordpress_object = '', $salesforce = '' ) {
 		if ( empty( $wordpress_object ) ) {
-			$wordpress_object = $_POST['wordpress_object'];
+			$wordpress_object = sanitize_key( $_POST['wordpress_object'] );
 		}
 		if ( empty( $salesforce_object ) ) {
-			$salesforce_object = $_POST['salesforce_object'];
+			$salesforce_object = sanitize_key( $_POST['salesforce_object'] );
 		}
 
 		$object_fields['wordpress'] = $this->get_wordpress_object_fields( $wordpress_object );
@@ -996,8 +996,8 @@ class Object_Sync_Sf_Admin {
 	*/
 	public function push_to_salesforce( $wordpress_object = '', $wordpress_id = '' ) {
 		if ( empty( $wordpress_object ) && empty( $wordpress_id ) ) {
-			$wordpress_object = $_POST['wordpress_object'];
-			$wordpress_id = $_POST['wordpress_id'];
+			$wordpress_object = sanitize_key( $_POST['wordpress_object'] );
+			$wordpress_id = sanitize_key( $_POST['wordpress_id'] );
 		}
 		$data = $this->wordpress->get_wordpress_object_data( $wordpress_object, $wordpress_id );
 		$result = $this->push->manual_object_update( $data, $wordpress_object );
@@ -1019,8 +1019,8 @@ class Object_Sync_Sf_Admin {
 	*/
 	public function pull_from_salesforce( $salesforce_id = '', $wordpress_object = '' ) {
 		if ( empty( $wordpress_object ) && empty( $salesforce_id ) ) {
-			$wordpress_object = $_POST['wordpress_object'];
-			$salesforce_id = $_POST['salesforce_id'];
+			$wordpress_object = sanitize_key( $_POST['wordpress_object'] );
+			$salesforce_id = sanitize_key( $_POST['salesforce_id'] );
 		}
 		$type = $this->salesforce['sfapi']->get_sobject_type( $salesforce_id );
 		$result = $this->pull->manual_pull( $type, $salesforce_id, $wordpress_object ); // we want the wp object to make sure we get the right fieldmap
@@ -1040,7 +1040,7 @@ class Object_Sync_Sf_Admin {
 	*/
 	public function refresh_mapped_data( $mapping_id = '' ) {
 		if ( empty( $mapping_id ) ) {
-			$mapping_id = $_POST['mapping_id'];
+			$mapping_id = sanitize_key( $_POST['mapping_id'] );
 		}
 		$result = $this->mappings->get_object_maps(
 			array(
@@ -1064,7 +1064,7 @@ class Object_Sync_Sf_Admin {
 	*/
 	public function prepare_fieldmap_data() {
 		$error = false;
-		$cachekey = md5( json_encode( $_POST ) );
+		$cachekey = md5( json_encode( $_POST ) ); // we should not have to worry about md5 collision attacks here, right?
 
 		if ( ! isset( $_POST['label'] ) || ! isset( $_POST['salesforce_object'] ) || ! isset( $_POST['wordpress_object'] ) ) {
 			$error = true;
@@ -1077,19 +1077,22 @@ class Object_Sync_Sf_Admin {
 		} else { // there are no errors
 			// send the row to the fieldmap class
 			// if it is add or clone, use the create method
-			$method = esc_attr( $_POST['method'] );
+			$method = sanitize_key( $_POST['method'] );
 			$salesforce_fields = $this->get_salesforce_object_fields(
 				array(
 					'salesforce_object' => $_POST['salesforce_object'],
 				)
 			);
+
 			$wordpress_fields = $this->get_wordpress_object_fields( $_POST['wordpress_object'] );
+
 			if ( 'add' === $method || 'clone' === $method ) {
 				$result = $this->mappings->create_fieldmap( $_POST, $wordpress_fields, $salesforce_fields );
 			} elseif ( 'edit' === $method ) { // if it is edit, use the update method
 				$id = esc_attr( $_POST['id'] );
 				$result = $this->mappings->update_fieldmap( $_POST, $wordpress_fields, $salesforce_fields, $id );
 			}
+
 			if ( false === $result ) { // if the database didn't save, it's still an error
 				set_transient( $cachekey, $_POST, 0 );
 				if ( '' !== $cachekey ) {
